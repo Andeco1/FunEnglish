@@ -9,18 +9,35 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class MainActivity extends AppCompatActivity {
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 
+import com.example.funenglish.fragments.*;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+        BottomNavigationView nav = findViewById(R.id.bottom_navigation);
+        nav.setOnNavigationItemSelectedListener(item -> {
+            Fragment fragment;
+            switch (item.getItemId()) {
+                case R.id.nav_dashboard: fragment = new DashboardFragment(); break;
+                case R.id.nav_lessons:   fragment = new LessonsFragment();  break;
+                case R.id.nav_tests:     fragment = new TestsFragment();    break;
+                case R.id.nav_reading:   fragment = new ReadingFragment();  break;
+                case R.id.nav_vocab:     fragment = new VocabularyFragment();break;
+                case R.id.nav_profile:   fragment = new ProfileFragment();   break;
+                default:                 fragment = new DashboardFragment();break;
+            }
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, fragment)
+                    .commit();
+            return true;
         });
-        Button button = findViewById(R.id.main);
+        if (savedInstanceState == null) nav.setSelectedItemId(R.id.nav_dashboard);
     }
 }
