@@ -1,77 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- Аватар -->
     <ImageView
-        android:id="@+id/imgAvatar"
+        android:id="@+id/ivProfile"
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:src="@drawable/ic_avatar_placeholder"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        android:layout_marginTop="32dp"
+        android:src="@drawable/ic_profile"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Имя -->
     <TextView
-        android:id="@+id/tvUsername"
-        android:layout_width="0dp"
+        android:id="@+id/tvName"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Ян"
+        android:layout_marginTop="16dp"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginStart="12dp"
-        app:layout_constraintTop_toTopOf="@id/imgAvatar"
-        app:layout_constraintStart_toEndOf="@id/imgAvatar"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivProfile" />
 
-    <!-- Детальная статистика -->
-    <com.google.android.material.card.MaterialCardView
+    <TextView
+        android:id="@+id/tvLevel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvName" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/imgAvatar"
+        android:layout_marginTop="24dp"
+        android:max="100"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/tvLevel" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="12dp">
+    <TextView
+        android:id="@+id/tvProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/progressBar" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Уроков пройдено: 12"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Тестов завершено: 34"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Книг прочитано: 5"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Слов выучено: 128"/>
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+    <Button
+        android:id="@+id/btnEditProfile"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Edit Profile"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvProgress" />
 
-    <!-- Настройки -->
-    <com.google.android.material.button.MaterialButton
+    <Button
         android:id="@+id/btnSettings"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Настройки"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/imgAvatar"
+        android:text="Settings"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@id/btnEditProfile" />
+
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Logout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnSettings" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

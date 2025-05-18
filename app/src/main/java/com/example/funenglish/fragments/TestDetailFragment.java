@@ -2,6 +2,9 @@ package com.example.funenglish.fragments;
 
 import android.os.Bundle; import android.view.*; import androidx.fragment.app.Fragment;
 import android.widget.*;
+
+import com.example.funenglish.R;
+
 public class TestDetailFragment extends Fragment {
     static final String ARG="id"; int id;
     public static TestDetailFragment newInstance(int i){TestDetailFragment f=new TestDetailFragment();Bundle a=new Bundle();a.putInt(ARG,i);f.setArguments(a);return f;}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="vocab_groups">
+        <item>Basic Words</item>
+        <item>Common Phrases</item>
+        <item>Business English</item>
+        <item>Academic Words</item>
+        <item>Travel Vocabulary</item>
+        <item>Food and Drink</item>
+        <item>Family and Friends</item>
+        <item>Work and Career</item>
+    </string-array>
+</resources> 

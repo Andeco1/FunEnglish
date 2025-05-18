@@ -1,14 +1,30 @@
 package com.example.funenglish.fragments;
 
-import android.os.Bundle; import android.view.*; import androidx.fragment.app.Fragment; import android.widget.TextView;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import androidx.fragment.app.Fragment;
+import com.example.funenglish.R;
+import com.example.funenglish.database.DataRepository;
+
 public class BookDetailFragment extends Fragment {
-    static final String ARG="id"; int id;
-    public static BookDetailFragment newInstance(int i){BookDetailFragment f=new BookDetailFragment();Bundle a=new Bundle();a.putInt(ARG,i);f.setArguments(a);return f;}
-    @Override public void onCreate(Bundle b){super.onCreate(b);id=getArguments().getInt(ARG);}
-    @Override public View onCreateView(LayoutInflater i,ViewGroup c,Bundle b){
-        View v=i.inflate(R.layout.fragment_book_detail,c,false);
-        ((TextView)v.findViewById(R.id.tvBookContent)).setText(DataRepository.getBook(id).text);
-        v.findViewById(R.id.btnCloseBook).setOnClickListener(x->getParentFragmentManager().popBackStack());
+    private int id;
+    private DataRepository repository;
+
+    public static BookDetailFragment newInstance(int id) {
+        BookDetailFragment fragment = new BookDetailFragment();
+        fragment.id = id;
+        return fragment;
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater i, ViewGroup c, Bundle b) {
+        View v = i.inflate(R.layout.fragment_book_detail, c, false);
+        repository = DataRepository.getInstance(requireContext());
+        ((TextView)v.findViewById(R.id.tvBookContent)).setText(repository.getBook(id).text);
+        v.findViewById(R.id.btnCloseBook).setOnClickListener(x -> getParentFragmentManager().popBackStack());
         return v;
     }
 }
