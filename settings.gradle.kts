@@ -19,5 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "FunEnglish"
+rootProject.name = "EnglishFun"
 include(":app")
+ 
