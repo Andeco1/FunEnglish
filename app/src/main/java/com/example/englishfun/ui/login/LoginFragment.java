@@ -1,6 +1,8 @@
 package com.example.englishfun.ui.login;
 
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +29,8 @@ import java.util.Map;
 
 public class LoginFragment extends Fragment {
     private FragmentLoginBinding binding;
-    private static final String LOGIN_URL = "http://192.168.0.105:9090/api/users/login"; // Replace with your actual server URL
+    private static final String LOGIN_URL = "http://10.5.50.151:9090/api/users/login"; // Replace with your actual server URL
+    private static final String REGISTER_URL = "http://10.5.50.151:9090/api/users/register"; // Replace with your actual server URL
 
     @Nullable
     @Override
@@ -57,6 +60,15 @@ public class LoginFragment extends Fragment {
                 performLogin(username, password);
             }
         });
+
+        binding.registerButton.setOnClickListener(v ->{
+            String username = binding.usernameEditText.getText().toString().trim();
+            String password = binding.passwordEditText.getText().toString().trim();
+
+            if (validateInput(username, password)) {
+                performRegister(username, password);
+            }
+        });
     }
 
     private boolean validateInput(String username, String password) {
@@ -74,15 +86,48 @@ public class LoginFragment extends Fragment {
 
         return true;
     }
+    private void performRegister(String username, String password){
+        binding.registerButton.setEnabled(false);
 
+        RequestQueue queue = Volley.newRequestQueue(requireContext());
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, REGISTER_URL,
+                response -> {
+                    binding.registerButton.setEnabled(true);
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response);
+                        if(jsonResponse.getString("success").equals(false)){
+                            showError("User already exists");
+                        } else {
+                            showError("Invalid server response");
+                        }
+                    } catch (JSONException e) {
+                        showError("Error parsing server response");
+                    }
+                },
+                error -> {
+                    binding.registerButton.setEnabled(true);
+                    showError("Register failed: " + error.getMessage());
+                }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                String credentials = username + ":" + password;
+                String auth = "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP);
+                headers.put("Authorization", auth);
+                Log.d("TESTTEST",auth);
+                return headers;
+            }
+        };
+
+        queue.add(stringRequest);
+    }
     private void performLogin(String username, String password) {
-        binding.progressBar.setVisibility(View.VISIBLE);
+
         binding.loginButton.setEnabled(false);
 
         RequestQueue queue = Volley.newRequestQueue(requireContext());
         StringRequest stringRequest = new StringRequest(Request.Method.POST, LOGIN_URL,
                 response -> {
-                    binding.progressBar.setVisibility(View.GONE);
                     binding.loginButton.setEnabled(true);
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
@@ -103,17 +148,20 @@ public class LoginFragment extends Fragment {
                     }
                 },
                 error -> {
-                    binding.progressBar.setVisibility(View.GONE);
                     binding.loginButton.setEnabled(true);
                     showError("Login failed: " + error.getMessage());
                 }) {
             @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<>();
-                params.put("login", username);
-                params.put("pasword_hash", password);
-                return params;
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                String credentials = username + ":" + password;
+                String auth = "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP);
+                headers.put("Authorization", auth);
+                Log.d("TESTTEST",auth);
+                return headers;
             }
+
+
         };
 
         queue.add(stringRequest);
