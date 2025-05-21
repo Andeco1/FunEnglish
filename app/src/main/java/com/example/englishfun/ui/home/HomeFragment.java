@@ -7,17 +7,18 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.englishfun.R;
 import com.example.englishfun.database.DataRepository;
 import com.example.englishfun.databinding.FragmentHomeBinding;
 import com.example.englishfun.database.models.Lesson;
 import com.example.englishfun.ui.adapters.LessonAdapter;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements LessonAdapter.OnLessonClickListener {
 
     private FragmentHomeBinding binding;
     private LessonAdapter adapter;
@@ -41,11 +42,19 @@ public class HomeFragment extends Fragment {
         // ... при необходимости добавьте другие уроки
 
         // Создаём и устанавливаем адаптер
-        adapter = new LessonAdapter(sampleLessons);
+        adapter = new LessonAdapter(sampleLessons, this);
         binding.recyclerViewLessons.setAdapter(adapter);
         adapter.notifyDataSetChanged();
 
         return root;
+    }
+
+    @Override
+    public void onLessonClick(Lesson lesson) {
+        Bundle args = new Bundle();
+        args.putInt("lesson_id", lesson.lesson_id);
+        Navigation.findNavController(requireView())
+                .navigate(R.id.action_navigation_home_to_lessonDetailFragment, args);
     }
 
     @Override

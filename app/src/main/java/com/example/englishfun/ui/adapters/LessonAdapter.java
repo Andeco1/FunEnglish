@@ -15,10 +15,16 @@ import java.util.List;
 
 public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonViewHolder> {
 
-    private final List<Lesson> lessons;
+    public interface OnLessonClickListener {
+        void onLessonClick(Lesson lesson);
+    }
 
-    public LessonAdapter(List<Lesson> lessons) {
+    private final List<Lesson> lessons;
+    private final OnLessonClickListener listener;
+
+    public LessonAdapter(List<Lesson> lessons, OnLessonClickListener listener) {
         this.lessons = lessons;
+        this.listener = listener;
     }
 
     @NonNull
@@ -34,6 +40,12 @@ public class LessonAdapter extends RecyclerView.Adapter<LessonAdapter.LessonView
         Lesson lesson = lessons.get(position);
         holder.title.setText(lesson.getTitle());
         holder.level.setText(lesson.getLevel());
+        
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onLessonClick(lesson);
+            }
+        });
     }
 
     @Override
