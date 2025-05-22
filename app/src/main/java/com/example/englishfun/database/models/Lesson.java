@@ -5,6 +5,7 @@ public class Lesson {
     public String title;
     public String content;
     public String level;
+    public String levelDesription;
 
     public Lesson() {
     }

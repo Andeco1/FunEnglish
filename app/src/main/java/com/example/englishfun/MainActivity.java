@@ -17,6 +17,8 @@ public class MainActivity extends AppCompatActivity {
     private UserInfo userInfo;
     private static final String AUTH_PREFS = "AuthPrefs";
     private static final String AUTH_TOKEN_KEY = "auth_token";
+    private static final String USER_INFO = "UserInfo";
+    private static final String USER_ID = "UserId";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +77,23 @@ public class MainActivity extends AppCompatActivity {
         getSharedPreferences(AUTH_PREFS, MODE_PRIVATE)
                 .edit()
                 .remove(AUTH_TOKEN_KEY)
+                .apply();
+    }
+
+    public void saveUserInfo(Long userId){
+        getSharedPreferences(USER_INFO,MODE_PRIVATE)
+                .edit()
+                .putLong(USER_ID,userId)
+                .apply();
+    }
+    public Long getUserId(){
+        return getSharedPreferences(USER_INFO, MODE_PRIVATE)
+                .getLong(USER_ID,0L);
+    }
+    public void clearUserInfo() {
+        getSharedPreferences(USER_INFO,MODE_PRIVATE)
+                .edit()
+                .remove(USER_ID)
                 .apply();
     }
 

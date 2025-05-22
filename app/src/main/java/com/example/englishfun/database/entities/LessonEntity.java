@@ -13,7 +13,9 @@ public class LessonEntity {
     public String title;
     @ColumnInfo(name = "content")
     public String content;
-    @ColumnInfo(name = "level")
-    public String level;
+    @ColumnInfo(name = "level_code")
+    public String levelCode;
+    @ColumnInfo(name = "level_description")
+    public String levelDescription;
 
 }

@@ -5,7 +5,9 @@ import android.content.Context;
 import androidx.room.Room;
 
 import com.example.englishfun.database.entities.LessonEntity;
+import com.example.englishfun.database.entities.TestEntity;
 import com.example.englishfun.database.models.Lesson;
+import com.example.englishfun.database.models.Test;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,7 +52,8 @@ public class DataRepository {
                     lesson.lesson_id = entity.lesson_id;
                     lesson.title = entity.title;
                     lesson.content = entity.content;
-                    lesson.level = entity.level;
+                    lesson.level = entity.levelCode;
+                    lesson.levelDesription = entity.levelDescription;
                     return lesson;
                 })
                 .collect(Collectors.toList());
@@ -63,8 +66,37 @@ public class DataRepository {
             lesson.lesson_id = entity.lesson_id;
             lesson.title = entity.title;
             lesson.content = entity.content;
-            lesson.level = entity.level;
+            lesson.level = entity.levelCode;
+            lesson.levelDesription = entity.levelDescription;
             return lesson;
+        }
+        return null;
+    }
+
+    public List<Test> getTests(){
+        List<TestEntity> entities = db.testDao().getAll();
+        return entities.stream()
+                .map(entity -> {
+                    Test test = new Test();
+                    test.test_id = entity.test_id;
+                    test.level = entity.level;
+                    test.title = entity.title;
+                    test.score = entity.score;
+                    test.passedAt = entity.passedAt;
+                    return test;
+                })
+                .collect(Collectors.toList());
+    }
+    public Test getTest(int id) {
+        TestEntity entity = db.testDao().getById(id);
+        if (entity != null) {
+            Test test = new Test();
+            test.test_id = entity.test_id;
+            test.level = entity.level;
+            test.title = entity.title;
+            test.score = entity.score;
+            test.passedAt = entity.passedAt;
+            return test;
         }
         return null;
     }

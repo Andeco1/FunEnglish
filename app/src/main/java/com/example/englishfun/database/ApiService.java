@@ -3,9 +3,16 @@ package com.example.englishfun.database;
 
 
 import com.example.englishfun.database.entities.LessonEntity;
+import com.example.englishfun.database.entities.TestEntity;
+import com.example.englishfun.database.models.User;
+
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Headers;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 import java.util.List;
 
@@ -14,4 +21,14 @@ public interface ApiService {
     Call<List<LessonEntity>> fetchLessons(
             @Header("Authorization") String basicAuthHeader
     );
+    @GET("api/progress/user/{userId}")
+    Call<List<TestEntity>> fetchTests(
+            @Path("userId") long userId,
+            @Header("Authorization") String basicAuthHeader
+
+    );
+
+    @Headers("Content-Type: application/json")
+    @POST("/api/users/register")
+    Call<Void> registerUser(@Body User user);
 }

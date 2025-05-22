@@ -16,12 +16,15 @@ import androidx.navigation.Navigation;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.englishfun.MainActivity;
 import com.example.englishfun.R;
 import com.example.englishfun.database.DataRepository;
 import com.example.englishfun.database.entities.LessonEntity;
+import com.example.englishfun.database.entities.TestEntity;
 import com.example.englishfun.database.models.Lesson;
 import com.example.englishfun.databinding.FragmentLoginBinding;
 
@@ -29,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,41 +101,66 @@ public class LoginFragment extends Fragment {
 
         return true;
     }
-    private void performRegister(String username, String password){
+    private void performRegister(String username, String password) {
+        // Блокируем кнопку, чтобы избежать дублей
         binding.registerButton.setEnabled(false);
 
         RequestQueue queue = Volley.newRequestQueue(requireContext());
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, REGISTER_URL,
+
+        // Формируем JSON-тело
+        JSONObject requestBody = new JSONObject();
+        try {
+            requestBody.put("login", username);
+            requestBody.put("password", password);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            binding.registerButton.setEnabled(true);
+            showError("Не удалось сформировать запрос");
+            return;
+        }
+
+        // JsonObjectRequest по умолчанию выставляет Content-Type: application/json
+        JsonObjectRequest jsonRequest = new JsonObjectRequest(
+                Request.Method.POST,
+                REGISTER_URL,
+                requestBody,
                 response -> {
                     binding.registerButton.setEnabled(true);
                     try {
-                        JSONObject jsonResponse = new JSONObject(response);
-                        if(jsonResponse.getString("success").equals(false)){
-                            showError("User already exists");
+                        boolean success = response.optBoolean("success", false);
+                        String message = response.optString("message", "");
+                        if (success) {
+                            long userId = response.optLong("user_id");
+                            Toast.makeText(getContext(), "Зарегистрирован: " + message, Toast.LENGTH_SHORT).show();
+                            // Сохраняем userId, если нужно
+                            ((MainActivity) requireActivity()).saveUserInfo(userId);
+                            // Переход к экрану логина
                         } else {
-                            showError("Invalid server response");
+                            showError("Регистрация не удалась: " + message);
                         }
-                    } catch (JSONException e) {
-                        showError("Error parsing server response");
+                    } catch (Exception e) {
+                        showError("Неверный ответ сервера");
                     }
                 },
                 error -> {
                     binding.registerButton.setEnabled(true);
-                    showError("Register failed: " + error.getMessage());
-                }) {
+                    showError("Ошибка сети: " + error.getMessage());
+                }
+        ) {
             @Override
             public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-                String credentials = username + ":" + password;
-                String auth = "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP);
-                headers.put("Authorization", auth);
-                Log.d("TESTTEST",auth);
-                return headers;
+                // Если сервер не требует дополнительных заголовков,
+                // можно вернуть пустой map — Content-Type уже application/json
+                return Collections.emptyMap();
             }
         };
 
-        queue.add(stringRequest);
+        // Отправляем запрос
+        queue.add(jsonRequest);
     }
+
+
+
     private void performLogin(String username, String password) {
 
         binding.loginButton.setEnabled(false);
@@ -147,9 +176,13 @@ public class LoginFragment extends Fragment {
                             String token = jsonResponse.getString("token");
                             MainActivity mainActivity = (MainActivity) requireActivity();
                             mainActivity.saveAuthToken(token);
+                            Long userId = jsonResponse.getLong("user_id");
+                            mainActivity.saveUserInfo(userId);
+
                             String credentials = username + ":" + password;
                             String auth = "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP);
                             loadLessonsFromServer(auth);
+                            loadTestsFromServer(auth,userId);
                             // Navigate to home screen
                             Navigation.findNavController(requireView())
                                     .navigate(R.id.action_navigation_login_to_navigation_home);
@@ -195,6 +228,27 @@ public class LoginFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<LessonEntity>> call, Throwable t) {
+                showError("Failure");
+            }
+        });
+
+    }
+    private void loadTestsFromServer(String auth, Long userId) {
+        Log.d("TESTTEST",String.valueOf(userId));
+        repository.getApiService().fetchTests(userId,auth).enqueue(new Callback<List<TestEntity>>() {
+            @Override
+            public void onResponse(Call<List<TestEntity>> call, Response<List<TestEntity>> response) {
+                if(response.isSuccessful() && response.body() != null){
+                    repository.getDatabase().testDao().insertAll(response.body());
+                    showError("всё полуилось");
+                }
+                else {
+                    showError("не получилось скачать уроки");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<TestEntity>> call, Throwable t) {
                 showError("Failure");
             }
         });
