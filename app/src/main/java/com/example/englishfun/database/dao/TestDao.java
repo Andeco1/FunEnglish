@@ -5,6 +5,7 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import com.example.englishfun.database.entities.LessonEntity;
 import com.example.englishfun.database.entities.TestEntity;
@@ -21,4 +22,7 @@ public interface TestDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insertAll(List<TestEntity> tests);
+
+    @Query("UPDATE test SET score = :score, passedAt = :passedAt WHERE test_id = :testId")
+    void updateTestScore(int testId, int score, String passedAt);
 }

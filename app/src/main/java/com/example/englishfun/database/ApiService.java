@@ -1,8 +1,8 @@
 package com.example.englishfun.database;
 
-
-
 import com.example.englishfun.database.entities.LessonEntity;
+import com.example.englishfun.database.entities.QuestionEntity;
+import com.example.englishfun.database.entities.QuestionOptionEntity;
 import com.example.englishfun.database.entities.TestEntity;
 import com.example.englishfun.database.models.User;
 
@@ -26,6 +26,16 @@ public interface ApiService {
             @Path("userId") long userId,
             @Header("Authorization") String basicAuthHeader
 
+    );
+
+    @GET("api/questions")
+    Call<List<QuestionEntity>> fetchQuestions(
+            @Header("Authorization") String basicAuthHeader
+    );
+
+    @GET("api/question-options")
+    Call<List<QuestionOptionEntity>> fetchQuestionOptions(
+            @Header("Authorization") String basicAuthHeader
     );
 
     @Headers("Content-Type: application/json")

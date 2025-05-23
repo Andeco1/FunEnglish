@@ -24,7 +24,9 @@ import com.example.englishfun.MainActivity;
 import com.example.englishfun.R;
 import com.example.englishfun.database.DataRepository;
 import com.example.englishfun.database.entities.LessonEntity;
+import com.example.englishfun.database.entities.QuestionEntity;
 import com.example.englishfun.database.entities.TestEntity;
+import com.example.englishfun.database.entities.QuestionOptionEntity;
 import com.example.englishfun.database.models.Lesson;
 import com.example.englishfun.databinding.FragmentLoginBinding;
 
@@ -43,8 +45,8 @@ import retrofit2.Response;
 
 public class LoginFragment extends Fragment {
     private FragmentLoginBinding binding;
-    private static final String LOGIN_URL = "http://10.5.50.151:9090/api/users/login"; // Replace with your actual server URL
-    private static final String REGISTER_URL = "http://10.5.50.151:9090/api/users/register"; // Replace with your actual server URL
+    private static final String LOGIN_URL = "http://192.168.0.105:9090/api/users/login"; // Replace with your actual server URL
+    private static final String REGISTER_URL = "http://192.168.0.105:9090/api/users/register"; // Replace with your actual server URL
     private DataRepository repository;
     private List<Lesson> lessons = new ArrayList<>();
     @Nullable
@@ -182,7 +184,9 @@ public class LoginFragment extends Fragment {
                             String credentials = username + ":" + password;
                             String auth = "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP);
                             loadLessonsFromServer(auth);
-                            loadTestsFromServer(auth,userId);
+                            loadTestsFromServer(auth, userId);
+                            loadQuestionsFromServer(auth);
+                            loadQuestionOptionsFromServer(auth);
                             // Navigate to home screen
                             Navigation.findNavController(requireView())
                                     .navigate(R.id.action_navigation_login_to_navigation_home);
@@ -203,7 +207,6 @@ public class LoginFragment extends Fragment {
                 String credentials = username + ":" + password;
                 String auth = "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP);
                 headers.put("Authorization", auth);
-                Log.d("TESTTEST",auth);
                 return headers;
             }
 
@@ -219,6 +222,7 @@ public class LoginFragment extends Fragment {
             public void onResponse(Call<List<LessonEntity>> call, Response<List<LessonEntity>> response) {
                 if(response.isSuccessful() && response.body() != null){
                     repository.getDatabase().lessonDao().insertAll(response.body());
+                    Log.d("TESTTEST","lessons downloaded");
                     showError("всё полуилось");
                 }
                 else {
@@ -234,7 +238,7 @@ public class LoginFragment extends Fragment {
 
     }
     private void loadTestsFromServer(String auth, Long userId) {
-        Log.d("TESTTEST",String.valueOf(userId));
+
         repository.getApiService().fetchTests(userId,auth).enqueue(new Callback<List<TestEntity>>() {
             @Override
             public void onResponse(Call<List<TestEntity>> call, Response<List<TestEntity>> response) {
@@ -253,6 +257,46 @@ public class LoginFragment extends Fragment {
             }
         });
 
+    }
+
+    private void loadQuestionOptionsFromServer(String auth) {
+        repository.getApiService().fetchQuestionOptions(auth).enqueue(new Callback<List<QuestionOptionEntity>>() {
+            @Override
+            public void onResponse(Call<List<QuestionOptionEntity>> call, Response<List<QuestionOptionEntity>> response) {
+                if(response.isSuccessful() && response.body() != null) {
+                    repository.getDatabase().questionOptionDao().insertAll(response.body());
+                    Log.d("TESTTEST", response.toString());
+                    Log.d("QuestionOptions", "Successfully loaded question options");
+                } else {
+                    showError("Failed to load question options");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<QuestionOptionEntity>> call, Throwable t) {
+                showError("Failed to load question options: " + t.getMessage());
+            }
+        });
+    }
+
+    private void loadQuestionsFromServer(String auth) {
+        repository.getApiService().fetchQuestions(auth).enqueue(new Callback<List<QuestionEntity>>() {
+            @Override
+            public void onResponse(Call<List<QuestionEntity>> call, Response<List<QuestionEntity>> response) {
+                if(response.isSuccessful() && response.body() != null) {
+                    repository.getDatabase().questionDao().insertAll(response.body());
+                    Log.d("TESTTEST", response.body().toString());
+                    Log.d("QuestionOptions", "Successfully loaded question options");
+                } else {
+                    showError("Failed to load question options");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<QuestionEntity>> call, Throwable t) {
+                showError("Failed to load question options: " + t.getMessage());
+            }
+        });
     }
 
     private void showError(String message) {
