@@ -117,8 +117,25 @@ public class TestFragment extends Fragment {
             int selectedOptionId = (int) selectedButton.getTag();
             QuestionEntity currentQuestion = questions.get(currentQuestionIndex);
 
+            // Find the selected option
+            QuestionOptionEntity selectedOption = null;
+            for (QuestionOptionEntity option : currentOptions) {
+                if (option.optionId == selectedOptionId) {
+                    selectedOption = option;
+                    break;
+                }
+            }
+
             // Show feedback
             binding.feedbackText.setVisibility(View.VISIBLE);
+            if (selectedOption != null && selectedOption.isCorrect) {
+                correctAnswers++;
+                binding.feedbackText.setText("Correct!");
+                binding.feedbackText.setTextColor(getResources().getColor(android.R.color.holo_green_dark, null));
+            } else {
+                binding.feedbackText.setText("Incorrect!");
+                binding.feedbackText.setTextColor(getResources().getColor(android.R.color.holo_red_dark, null));
+            }
 
             // Disable radio buttons and show next button
             binding.optionsRadioGroup.setEnabled(false);

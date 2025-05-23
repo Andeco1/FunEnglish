@@ -65,7 +65,7 @@ public class TestResultsDialog extends DialogFragment {
             // Set up finish button
             finishButton.setOnClickListener(v -> {
                 dismiss();
-                Navigation.findNavController(requireActivity(), R.id.mobile_navigation)
+                Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_activity_main)
                     .navigate(R.id.navigation_dashboard);
             });
         }
