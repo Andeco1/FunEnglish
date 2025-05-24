@@ -45,10 +45,11 @@ import retrofit2.Response;
 
 public class LoginFragment extends Fragment {
     private FragmentLoginBinding binding;
-    private static final String LOGIN_URL = "http://192.168.0.105:9090/api/users/login"; // Replace with your actual server URL
-    private static final String REGISTER_URL = "http://192.168.0.105:9090/api/users/register"; // Replace with your actual server URL
+    private static final String LOGIN_URL = "http://192.168.0.105:9090/api/users/login";
+    private static final String REGISTER_URL = "http://192.168.0.105:9090/api/users/register";
     private DataRepository repository;
     private List<Lesson> lessons = new ArrayList<>();
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -88,21 +89,21 @@ public class LoginFragment extends Fragment {
 
     private boolean validateInput(String username, String password) {
         if (username.isEmpty()) {
-            binding.usernameLayout.setError("Требуется логин");
+            binding.usernameLayout.setError("Username is required");
             return false;
         }
         binding.usernameLayout.setError(null);
 
         if (password.isEmpty()) {
-            binding.passwordLayout.setError("Требуется пароль");
+            binding.passwordLayout.setError("Password is required");
             return false;
         }
         binding.passwordLayout.setError(null);
 
         return true;
     }
-    private void performRegister(String username, String password) {
 
+    private void performRegister(String username, String password) {
         binding.registerButton.setEnabled(false);
 
         RequestQueue queue = Volley.newRequestQueue(requireContext());
@@ -130,9 +131,7 @@ public class LoginFragment extends Fragment {
                         if (success) {
                             long userId = response.optLong("user_id");
                             Toast.makeText(getContext(), "Зарегистрирован: " + message, Toast.LENGTH_SHORT).show();
-
                             ((MainActivity) requireActivity()).saveUserInfo(userId);
-
                         } else {
                             showError("Регистрация не удалась: " + message);
                         }
@@ -147,7 +146,6 @@ public class LoginFragment extends Fragment {
         ) {
             @Override
             public Map<String, String> getHeaders() {
-
                 return Collections.emptyMap();
             }
         };
@@ -155,10 +153,7 @@ public class LoginFragment extends Fragment {
         queue.add(jsonRequest);
     }
 
-
-
     private void performLogin(String username, String password) {
-
         binding.loginButton.setEnabled(false);
 
         RequestQueue queue = Volley.newRequestQueue(requireContext());
@@ -168,7 +163,6 @@ public class LoginFragment extends Fragment {
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
                         if (jsonResponse.has("token")) {
-
                             String token = jsonResponse.getString("token");
                             MainActivity mainActivity = (MainActivity) requireActivity();
                             mainActivity.saveAuthToken(token);
@@ -181,14 +175,13 @@ public class LoginFragment extends Fragment {
                             loadTestsFromServer(auth, userId);
                             loadQuestionsFromServer(auth);
                             loadQuestionOptionsFromServer(auth);
-
                             Navigation.findNavController(requireView())
                                     .navigate(R.id.action_navigation_login_to_navigation_home);
                         } else {
-                            showError("Неверный ответ сервера");
+                            showError("Invalid server response");
                         }
                     } catch (JSONException e) {
-                        showError("Ошибка распознования ответа с сервера");
+                        showError("Error parsing server response");
                     }
                 },
                 error -> {
@@ -203,8 +196,6 @@ public class LoginFragment extends Fragment {
                 headers.put("Authorization", auth);
                 return headers;
             }
-
-
         };
 
         queue.add(stringRequest);
@@ -229,10 +220,9 @@ public class LoginFragment extends Fragment {
                 showError("Failure");
             }
         });
-
     }
-    private void loadTestsFromServer(String auth, Long userId) {
 
+    private void loadTestsFromServer(String auth, Long userId) {
         repository.getApiService().fetchTests(userId,auth).enqueue(new Callback<List<TestEntity>>() {
             @Override
             public void onResponse(Call<List<TestEntity>> call, Response<List<TestEntity>> response) {
@@ -250,7 +240,25 @@ public class LoginFragment extends Fragment {
                 showError("Failure");
             }
         });
+    }
 
+    private void loadQuestionsFromServer(String auth) {
+        repository.getApiService().fetchQuestions(auth).enqueue(new Callback<List<QuestionEntity>>() {
+            @Override
+            public void onResponse(Call<List<QuestionEntity>> call, Response<List<QuestionEntity>> response) {
+                if(response.isSuccessful() && response.body() != null) {
+                    repository.getDatabase().questionDao().insertAll(response.body());
+                    Log.d("Questions", "Successfully loaded questions");
+                } else {
+                    showError("Failed to load questions");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<QuestionEntity>> call, Throwable t) {
+                showError("Failed to load questions: " + t.getMessage());
+            }
+        });
     }
 
     private void loadQuestionOptionsFromServer(String auth) {
@@ -260,47 +268,20 @@ public class LoginFragment extends Fragment {
                 if(response.isSuccessful() && response.body() != null) {
                     repository.getDatabase().questionOptionDao().insertAll(response.body());
                     Log.d("TESTTEST", response.toString());
-                    Log.d("QuestionOptions", "варианты вопросов скачаны");
+                    Log.d("QuestionOptions", "Successfully loaded question options");
+                } else {
+                    showError("Failed to load question options");
                 }
             }
 
             @Override
             public void onFailure(Call<List<QuestionOptionEntity>> call, Throwable t) {
-                showError("Ошибка: " + t.getMessage());
-            }
-        });
-    }
-
-    private void loadQuestionsFromServer(String auth) {
-        repository.getApiService().fetchQuestions(auth).enqueue(new Callback<List<QuestionEntity>>() {
-            @Override
-            public void onResponse(Call<List<QuestionEntity>> call, Response<List<QuestionEntity>> response) {
-                if(response.isSuccessful() && response.body() != null) {
-                    repository.getDatabase().questionDao().insertAll(response.body());
-                    Log.d("TESTTEST", response.body().toString());
-                    Log.d("QuestionOptions", "Вопросы скачаны");
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<QuestionEntity>> call, Throwable t) {
-                showError("Ошибка: " + t.getMessage());
+                showError("Failed to load question options: " + t.getMessage());
             }
         });
     }
 
     private void showError(String message) {
-        if (!isAdded()) return;
-
-        Context ctx = getContext();
-        if (ctx != null) {
-            Toast.makeText(ctx, message, Toast.LENGTH_LONG).show();
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
 } 

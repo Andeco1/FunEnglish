@@ -57,7 +57,6 @@ public class NotificationsFragment extends Fragment {
                 }
             });
 
-        // Load books from database
         loadBooks();
     }
 

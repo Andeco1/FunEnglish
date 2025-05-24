@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
                     controller.navigate(R.id.navigation_login);
                     return;
                 }
-                
+
                 binding.navView.setVisibility(isMainScreen ? View.VISIBLE : View.GONE);
 
                 if (destination.getId() == R.id.navigation_login) {
@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
 
             String authToken = getAuthToken();
             if (authToken == null || authToken.isEmpty()) {
-
                 navController.navigate(R.id.navigation_login);
             } else {
                 binding.navView.setVisibility(View.VISIBLE);
@@ -96,10 +95,12 @@ public class MainActivity extends AppCompatActivity {
                 .putLong(USER_ID,userId)
                 .apply();
     }
+
     public Long getUserId(){
         return getSharedPreferences(USER_INFO, MODE_PRIVATE)
                 .getLong(USER_ID,0L);
     }
+
     public void clearUserInfo() {
         getSharedPreferences(USER_INFO,MODE_PRIVATE)
                 .edit()
