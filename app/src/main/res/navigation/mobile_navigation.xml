@@ -52,7 +52,7 @@
     <fragment
         android:id="@+id/lessonDetailFragment"
         android:name="com.example.englishfun.ui.lesson.LessonDetailFragment"
-        android:label="Lesson Detail"
+        android:label="Урок"
         tools:layout="@layout/fragment_lesson_detail">
         <argument
             android:name="lesson_id"
@@ -62,7 +62,7 @@
     <fragment
         android:id="@+id/testFragment"
         android:name="com.example.englishfun.ui.test.TestFragment"
-        android:label="Test"
+        android:label="Тест"
         tools:layout="@layout/fragment_test">
         <argument
             android:name="test_id"

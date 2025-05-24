@@ -44,7 +44,7 @@ public class LessonDetailFragment extends Fragment {
             if (lesson != null) {
                 binding.textViewLessonTitle.setText(lesson.getTitle());
                 binding.textViewLessonLevel.setText(lesson.getLevel());
-                binding.textViewLessonContent.setText(lesson.content);
+                binding.textViewLessonContent.setText(lesson.content.replace("\\n", "\n"));
             }
         }
     }

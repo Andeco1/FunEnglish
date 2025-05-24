@@ -1,6 +1,6 @@
 package com.example.englishfun.ui.notifications;
 
-import android.app.AlertDialog;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
@@ -21,6 +22,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.englishfun.R;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,6 +33,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +42,8 @@ public class ReadBookFragment extends Fragment {
     private static final String ARG_FILE_PATH = "file_path";
     private static final String DICTIONARY_API_BASE_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/";
     private RequestQueue requestQueue;
+    private AlertDialog currentDialog;
+    private MediaPlayer mediaPlayer;
 
     public static ReadBookFragment newInstance(String filePath) {
         ReadBookFragment fragment = new ReadBookFragment();
@@ -65,7 +72,7 @@ public class ReadBookFragment extends Fragment {
                     String content = readFile(filePath);
                     makeTextClickable(contentView, content);
                 } catch (IOException e) {
-                    contentView.setText("Ошибка чтения файла: " + e.getMessage());
+                    contentView.setText("Error reading file: " + e.getMessage());
                 }
             }
         }
@@ -100,6 +107,7 @@ public class ReadBookFragment extends Fragment {
     }
 
     private void lookupWord(String word) {
+        showLoadingDialog();
         String url = DICTIONARY_API_BASE_URL + word.toLowerCase();
 
         JsonArrayRequest request = new JsonArrayRequest(
@@ -110,51 +118,146 @@ public class ReadBookFragment extends Fragment {
                 try {
                     if (response.length() > 0) {
                         JSONObject wordData = response.getJSONObject(0);
-                        JSONArray meanings = wordData.getJSONArray("meanings");
-                        StringBuilder definition = new StringBuilder();
-
-                        for (int i = 0; i < meanings.length(); i++) {
-                            JSONObject meaning = meanings.getJSONObject(i);
-                            JSONArray definitions = meaning.getJSONArray("definitions");
-
-                            for (int j = 0; j < definitions.length(); j++) {
-                                JSONObject def = definitions.getJSONObject(j);
-                                definition.append(def.getString("definition")).append("\n");
+                        String phonetic = wordData.optString("phonetic", "");
+                        String audioUrl = null;
+                        
+                        // Get audio URL from phonetics array
+                        JSONArray phonetics = wordData.getJSONArray("phonetics");
+                        for (int i = 0; i < phonetics.length(); i++) {
+                            JSONObject phoneticObj = phonetics.getJSONObject(i);
+                            if (phoneticObj.has("audio") && !phoneticObj.isNull("audio")) {
+                                audioUrl = phoneticObj.getString("audio");
+                                break;
                             }
                         }
 
-                        showDefinition(word, definition.toString().trim());
+                        List<String> definitions = new ArrayList<>();
+                        List<String> examples = new ArrayList<>();
+                        
+                        JSONArray meanings = wordData.getJSONArray("meanings");
+                        for (int i = 0; i < meanings.length(); i++) {
+                            JSONObject meaning = meanings.getJSONObject(i);
+                            String partOfSpeech = meaning.getString("partOfSpeech");
+                            JSONArray definitionsArray = meaning.getJSONArray("definitions");
+
+                            for (int j = 0; j < definitionsArray.length(); j++) {
+                                JSONObject def = definitionsArray.getJSONObject(j);
+                                definitions.add(partOfSpeech + ": " + def.getString("definition"));
+                                
+                                if (def.has("example") && !def.isNull("example")) {
+                                    examples.add(def.getString("example"));
+                                }
+                            }
+                        }
+
+                        showDefinitionDialog(word, phonetic, audioUrl, definitions, examples);
                     } else {
-                        showDefinition(word, "Определение не найдено.");
+                        showErrorDialog(word, "Definition not found.");
                     }
                 } catch (JSONException e) {
-                    showDefinition(word, "Ошибка при разборе ответа словаря.");
+                    showErrorDialog(word, "Error parsing dictionary response.");
                 }
             },
-            error -> showDefinition(word, "Ошибка при получении определения: " + error.getMessage())
+            error -> showErrorDialog(word, "Error fetching definition: " + error.getMessage())
         );
 
         request.setTag(this);
         requestQueue.add(request);
     }
 
-    private void showDefinition(String word, String definition) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+    private void showLoadingDialog() {
+        if (currentDialog != null) {
+            currentDialog.dismiss();
+        }
+
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+        builder.setView(R.layout.dialog_loading);
+        builder.setCancelable(false);
+        currentDialog = builder.create();
+        currentDialog.show();
+    }
+
+    private void showDefinitionDialog(String word, String phonetic, String audioUrl, 
+                                    List<String> definitions, List<String> examples) {
+        if (currentDialog != null) {
+            currentDialog.dismiss();
+        }
+
+        View dialogView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_word_definition, null);
+
+        TextView wordTitle = dialogView.findViewById(R.id.wordTitle);
+        TextView phoneticText = dialogView.findViewById(R.id.phoneticText);
+        MaterialButton playButton = dialogView.findViewById(R.id.playPronunciationButton);
+        TextView definitionsText = dialogView.findViewById(R.id.definitionsText);
+        TextView examplesText = dialogView.findViewById(R.id.examplesText);
+
+        wordTitle.setText(word);
+        phoneticText.setText(phonetic);
+        
+        if (audioUrl != null && !audioUrl.isEmpty()) {
+            playButton.setVisibility(View.VISIBLE);
+            playButton.setOnClickListener(v -> playPronunciation(audioUrl));
+        } else {
+            playButton.setVisibility(View.GONE);
+        }
+
+        StringBuilder definitionsBuilder = new StringBuilder();
+        for (String def : definitions) {
+            definitionsBuilder.append("• ").append(def).append("\n\n");
+        }
+        definitionsText.setText(definitionsBuilder.toString().trim());
+
+        if (!examples.isEmpty()) {
+            StringBuilder examplesBuilder = new StringBuilder();
+            for (String example : examples) {
+                examplesBuilder.append("• ").append(example).append("\n\n");
+            }
+            examplesText.setText(examplesBuilder.toString().trim());
+        } else {
+            dialogView.findViewById(R.id.examplesTitle).setVisibility(View.GONE);
+            examplesText.setVisibility(View.GONE);
+        }
+
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+        builder.setView(dialogView);
+        builder.setPositiveButton("Close", (dialog, which) -> {
+            if (mediaPlayer != null) {
+                mediaPlayer.release();
+                mediaPlayer = null;
+            }
+        });
+
+        currentDialog = builder.create();
+        currentDialog.show();
+    }
+
+    private void showErrorDialog(String word, String message) {
+        if (currentDialog != null) {
+            currentDialog.dismiss();
+        }
+
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
         builder.setTitle(word);
-        
-        TextView definitionView = new TextView(requireContext());
-        definitionView.setText(definition);
-        definitionView.setPadding(50, 30, 50, 30);
-        definitionView.setTextSize(16);
-        
-        android.widget.ScrollView scrollView = new android.widget.ScrollView(requireContext());
-        scrollView.addView(definitionView);
-        
-        builder.setView(scrollView);
-        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
-        
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        builder.setMessage(message);
+        builder.setPositiveButton("OK", null);
+        currentDialog = builder.create();
+        currentDialog.show();
+    }
+
+    private void playPronunciation(String audioUrl) {
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+        }
+
+        mediaPlayer = new MediaPlayer();
+        try {
+            mediaPlayer.setDataSource(audioUrl);
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+        } catch (IOException e) {
+            Toast.makeText(requireContext(), "Error playing pronunciation", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private String readFile(String filePath) throws IOException {
@@ -174,6 +277,13 @@ public class ReadBookFragment extends Fragment {
         super.onDestroy();
         if (requestQueue != null) {
             requestQueue.cancelAll(this);
+        }
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+        if (currentDialog != null) {
+            currentDialog.dismiss();
         }
     }
 } 

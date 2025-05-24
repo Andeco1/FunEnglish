@@ -70,22 +70,19 @@ public class TestFragment extends Fragment {
         }
 
         QuestionEntity currentQuestion = questions.get(currentQuestionIndex);
-        binding.questionNumberText.setText(String.format("Впорос номер %d из %d",
+        binding.questionNumberText.setText(String.format("Вопрос номер %d из %d",
             currentQuestionIndex + 1, questions.size()));
         binding.questionText.setText(currentQuestion.questionText);
 
-        // Load options for current question
         currentOptions = repository.getDatabase().questionOptionDao()
             .getByQuestionId(currentQuestion.question_id);
 
-        // Clear previous selection
         binding.optionsRadioGroup.clearCheck();
         binding.feedbackText.setVisibility(View.GONE);
         binding.nextButton.setVisibility(View.GONE);
         binding.answerButton.setVisibility(View.VISIBLE);
         binding.answerButton.setText(currentQuestionIndex == questions.size() - 1 ? "Закончить" : "Ответить");
 
-        // Set up radio buttons
         List<RadioButton> radioButtons = new ArrayList<>();
         radioButtons.add(binding.option1);
         radioButtons.add(binding.option2);
@@ -99,7 +96,6 @@ public class TestFragment extends Fragment {
             radioButton.setVisibility(View.VISIBLE);
         }
 
-        // Hide unused radio buttons
         for (int i = currentOptions.size(); i < radioButtons.size(); i++) {
             radioButtons.get(i).setVisibility(View.GONE);
         }
@@ -117,7 +113,6 @@ public class TestFragment extends Fragment {
             int selectedOptionId = (int) selectedButton.getTag();
             QuestionEntity currentQuestion = questions.get(currentQuestionIndex);
 
-            // Find the selected option
             QuestionOptionEntity selectedOption = null;
             for (QuestionOptionEntity option : currentOptions) {
                 if (option.optionId == selectedOptionId) {
@@ -126,7 +121,6 @@ public class TestFragment extends Fragment {
                 }
             }
 
-            // Show feedback
             binding.feedbackText.setVisibility(View.VISIBLE);
             if (selectedOption != null && selectedOption.isCorrect) {
                 correctAnswers++;
@@ -137,7 +131,6 @@ public class TestFragment extends Fragment {
                 binding.feedbackText.setTextColor(getResources().getColor(android.R.color.holo_red_dark, null));
             }
 
-            // Disable radio buttons and show next button
             binding.optionsRadioGroup.setEnabled(false);
             binding.answerButton.setVisibility(View.GONE);
             binding.nextButton.setVisibility(View.VISIBLE);

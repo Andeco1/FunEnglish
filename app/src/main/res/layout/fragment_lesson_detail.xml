@@ -39,7 +39,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="16sp"
-            android:lineSpacingExtra="8dp" />
+            android:lineSpacingExtra="8dp"
+            android:breakStrategy="high_quality"
+            android:hyphenationFrequency="normal"
+            android:autoLink="web"
+            android:linksClickable="true" />
 
     </ScrollView>
 
