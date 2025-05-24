@@ -13,10 +13,13 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.englishfun.R;
+import com.example.englishfun.data.AppDatabase;
+import com.example.englishfun.data.entity.Book;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
@@ -25,16 +28,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class NotificationsFragment extends Fragment {
     private static final int PICK_TXT_FILE = 1;
-    private List<BookItem> books = new ArrayList<>();
+    private List<Book> books = new ArrayList<>();
     private BookAdapter adapter;
     private ActivityResultLauncher<Intent> filePickerLauncher;
+    private AppDatabase database;
+    private ExecutorService executorService;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        database = AppDatabase.getDatabase(requireContext());
+        executorService = Executors.newSingleThreadExecutor();
         
         filePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -46,6 +56,18 @@ public class NotificationsFragment extends Fragment {
                     }
                 }
             });
+
+        // Load books from database
+        loadBooks();
+    }
+
+    private void loadBooks() {
+        LiveData<List<Book>> booksLiveData = database.bookDao().getAllBooks();
+        booksLiveData.observe(this, booksList -> {
+            books.clear();
+            books.addAll(booksList);
+            adapter.notifyDataSetChanged();
+        });
     }
 
     @Override
@@ -91,8 +113,10 @@ public class NotificationsFragment extends Fragment {
                 }
             }
 
-            books.add(new BookItem(fileName, destFile.getAbsolutePath()));
-            adapter.notifyItemInserted(books.size() - 1);
+            // Save to database
+            Book book = new Book(fileName, destFile.getAbsolutePath());
+            executorService.execute(() -> database.bookDao().insert(book));
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -118,8 +142,8 @@ public class NotificationsFragment extends Fragment {
         return result;
     }
 
-    private void openBook(BookItem book) {
-        ReadBookFragment fragment = ReadBookFragment.newInstance(book.filePath);
+    private void openBook(Book book) {
+        ReadBookFragment fragment = ReadBookFragment.newInstance(book.getFilePath());
         requireActivity().getSupportFragmentManager()
             .beginTransaction()
             .replace(R.id.nav_host_fragment_activity_main, fragment)
@@ -127,25 +151,21 @@ public class NotificationsFragment extends Fragment {
             .commit();
     }
 
-    private static class BookItem {
-        String title;
-        String filePath;
-
-        BookItem(String title, String filePath) {
-            this.title = title;
-            this.filePath = filePath;
-        }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        executorService.shutdown();
     }
 
     private static class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
-        private List<BookItem> books;
+        private List<Book> books;
         private OnBookClickListener listener;
 
         interface OnBookClickListener {
-            void onBookClick(BookItem book);
+            void onBookClick(Book book);
         }
 
-        BookAdapter(List<BookItem> books, OnBookClickListener listener) {
+        BookAdapter(List<Book> books, OnBookClickListener listener) {
             this.books = books;
             this.listener = listener;
         }
@@ -160,8 +180,8 @@ public class NotificationsFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            BookItem book = books.get(position);
-            holder.titleView.setText(book.title);
+            Book book = books.get(position);
+            holder.titleView.setText(book.getTitle());
             holder.itemView.setOnClickListener(v -> listener.onBookClick(book));
         }
 
