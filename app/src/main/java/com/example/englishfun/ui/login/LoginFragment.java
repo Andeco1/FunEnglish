@@ -60,10 +60,8 @@ public class LoginFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // Check if we already have a token
         MainActivity mainActivity = (MainActivity) requireActivity();
         if (mainActivity.getAuthToken() != null) {
-            // Token exists, navigate to home screen
             Navigation.findNavController(view)
                     .navigate(R.id.action_navigation_login_to_navigation_home);
             return;
@@ -90,13 +88,13 @@ public class LoginFragment extends Fragment {
 
     private boolean validateInput(String username, String password) {
         if (username.isEmpty()) {
-            binding.usernameLayout.setError("Username is required");
+            binding.usernameLayout.setError("Требуется логин");
             return false;
         }
         binding.usernameLayout.setError(null);
 
         if (password.isEmpty()) {
-            binding.passwordLayout.setError("Password is required");
+            binding.passwordLayout.setError("Требуется пароль");
             return false;
         }
         binding.passwordLayout.setError(null);
@@ -104,12 +102,11 @@ public class LoginFragment extends Fragment {
         return true;
     }
     private void performRegister(String username, String password) {
-        // Блокируем кнопку, чтобы избежать дублей
+
         binding.registerButton.setEnabled(false);
 
         RequestQueue queue = Volley.newRequestQueue(requireContext());
 
-        // Формируем JSON-тело
         JSONObject requestBody = new JSONObject();
         try {
             requestBody.put("login", username);
@@ -121,7 +118,6 @@ public class LoginFragment extends Fragment {
             return;
         }
 
-        // JsonObjectRequest по умолчанию выставляет Content-Type: application/json
         JsonObjectRequest jsonRequest = new JsonObjectRequest(
                 Request.Method.POST,
                 REGISTER_URL,
@@ -134,9 +130,9 @@ public class LoginFragment extends Fragment {
                         if (success) {
                             long userId = response.optLong("user_id");
                             Toast.makeText(getContext(), "Зарегистрирован: " + message, Toast.LENGTH_SHORT).show();
-                            // Сохраняем userId, если нужно
+
                             ((MainActivity) requireActivity()).saveUserInfo(userId);
-                            // Переход к экрану логина
+
                         } else {
                             showError("Регистрация не удалась: " + message);
                         }
@@ -151,13 +147,11 @@ public class LoginFragment extends Fragment {
         ) {
             @Override
             public Map<String, String> getHeaders() {
-                // Если сервер не требует дополнительных заголовков,
-                // можно вернуть пустой map — Content-Type уже application/json
+
                 return Collections.emptyMap();
             }
         };
 
-        // Отправляем запрос
         queue.add(jsonRequest);
     }
 
@@ -174,7 +168,7 @@ public class LoginFragment extends Fragment {
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
                         if (jsonResponse.has("token")) {
-                            // Save the token using MainActivity's method
+
                             String token = jsonResponse.getString("token");
                             MainActivity mainActivity = (MainActivity) requireActivity();
                             mainActivity.saveAuthToken(token);
@@ -187,14 +181,14 @@ public class LoginFragment extends Fragment {
                             loadTestsFromServer(auth, userId);
                             loadQuestionsFromServer(auth);
                             loadQuestionOptionsFromServer(auth);
-                            // Navigate to home screen
+
                             Navigation.findNavController(requireView())
                                     .navigate(R.id.action_navigation_login_to_navigation_home);
                         } else {
-                            showError("Invalid server response");
+                            showError("Неверный ответ сервера");
                         }
                     } catch (JSONException e) {
-                        showError("Error parsing server response");
+                        showError("Ошибка распознования ответа с сервера");
                     }
                 },
                 error -> {
@@ -266,15 +260,13 @@ public class LoginFragment extends Fragment {
                 if(response.isSuccessful() && response.body() != null) {
                     repository.getDatabase().questionOptionDao().insertAll(response.body());
                     Log.d("TESTTEST", response.toString());
-                    Log.d("QuestionOptions", "Successfully loaded question options");
-                } else {
-                    showError("Failed to load question options");
+                    Log.d("QuestionOptions", "варианты вопросов скачаны");
                 }
             }
 
             @Override
             public void onFailure(Call<List<QuestionOptionEntity>> call, Throwable t) {
-                showError("Failed to load question options: " + t.getMessage());
+                showError("Ошибка: " + t.getMessage());
             }
         });
     }
@@ -286,24 +278,20 @@ public class LoginFragment extends Fragment {
                 if(response.isSuccessful() && response.body() != null) {
                     repository.getDatabase().questionDao().insertAll(response.body());
                     Log.d("TESTTEST", response.body().toString());
-                    Log.d("QuestionOptions", "Successfully loaded question options");
-                } else {
-                    showError("Failed to load question options");
+                    Log.d("QuestionOptions", "Вопросы скачаны");
                 }
             }
 
             @Override
             public void onFailure(Call<List<QuestionEntity>> call, Throwable t) {
-                showError("Failed to load question options: " + t.getMessage());
+                showError("Ошибка: " + t.getMessage());
             }
         });
     }
 
     private void showError(String message) {
-        // Проверяем, что фрагмент всё ещё присоединён к Activity
         if (!isAdded()) return;
 
-        // Используем безопасное getContext()
         Context ctx = getContext();
         if (ctx != null) {
             Toast.makeText(ctx, message, Toast.LENGTH_LONG).show();

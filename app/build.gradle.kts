@@ -1,6 +1,5 @@
 plugins {
     id("com.android.application")
-    // Убираем kotlin-kapt, он не нужен для Java
 }
 
 android {

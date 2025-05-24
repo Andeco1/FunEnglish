@@ -26,37 +26,47 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // Get NavHostFragment
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment_activity_main);
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
 
-            // Set up the bottom navigation only for main app screens
             AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                     R.id.navigation_home,
                     R.id.navigation_dashboard,
-                    R.id.navigation_notifications
+                    R.id.navigation_notifications,
+                    R.id.navigation_profile,
+                    R.id.navigation_login
             ).build();
 
-            // Only show bottom navigation for main app screens
             navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                 boolean isMainScreen = destination.getId() == R.id.navigation_home ||
                                      destination.getId() == R.id.navigation_dashboard ||
-                                     destination.getId() == R.id.navigation_notifications;
+                                     destination.getId() == R.id.navigation_notifications ||
+                                     destination.getId() == R.id.navigation_profile;
+
+                if (isMainScreen && (getAuthToken() == null || getAuthToken().isEmpty())) {
+                    controller.navigate(R.id.navigation_login);
+                    return;
+                }
                 
                 binding.navView.setVisibility(isMainScreen ? View.VISIBLE : View.GONE);
+
+                if (destination.getId() == R.id.navigation_login) {
+                    getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                }
             });
 
             NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
             NavigationUI.setupWithNavController(binding.navView, navController);
 
-            // Check for existing auth token
             String authToken = getAuthToken();
-            if (authToken != null && !authToken.isEmpty()) {
-                // Token exists, navigate to home screen
+            if (authToken == null || authToken.isEmpty()) {
+
+                navController.navigate(R.id.navigation_login);
+            } else {
                 binding.navView.setVisibility(View.VISIBLE);
-                userInfo = UserInfo.getInstance(0L); // Initialize user info
+                userInfo = UserInfo.getInstance(0L);
             }
         }
     }
@@ -99,6 +109,37 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onSupportNavigateUp() {
+        if (navController != null && navController.getCurrentDestination() != null) {
+            if (navController.getCurrentDestination().getId() == R.id.navigation_login) {
+                return false;
+            }
+        }
         return navController != null && navController.navigateUp() || super.onSupportNavigateUp();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (navController != null && navController.getCurrentDestination() != null) {
+            if (navController.getCurrentDestination().getId() == R.id.navigation_login) {
+                return;
+            }
+        }
+        super.onBackPressed();
+    }
+
+    public void logout() {
+        getSharedPreferences(AUTH_PREFS, MODE_PRIVATE).edit().clear().apply();
+        getSharedPreferences(USER_INFO, MODE_PRIVATE).edit().clear().apply();
+
+        deleteDatabase("english_fun_db");
+        getApplicationContext().deleteDatabase("english_fun_db");
+
+        if (userInfo != null) {
+            userInfo.clearInstance();
+        }
+
+        if (navController != null) {
+            navController.navigate(R.id.navigation_login);
+        }
     }
 }

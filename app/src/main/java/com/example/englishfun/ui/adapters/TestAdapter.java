@@ -39,8 +39,7 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestViewHolder
     public void onBindViewHolder(@NonNull TestViewHolder holder, int position) {
         Test test = tests.get(position);
         holder.title.setText(test.getTitle());
-        holder.level.setText(test.getLevel());
-        holder.questionCount.setText(String.format("%d score", test.getQuestionScore()));
+        holder.questionCount.setText(String.format("Набрано баллов: %d ", test.getQuestionScore()));
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
@@ -60,7 +59,6 @@ public class TestAdapter extends RecyclerView.Adapter<TestAdapter.TestViewHolder
         TestViewHolder(View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.testTitle);
-            level = itemView.findViewById(R.id.testLevel);
             questionCount = itemView.findViewById(R.id.questionCount);
         }
     }

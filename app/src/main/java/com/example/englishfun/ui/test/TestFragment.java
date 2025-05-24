@@ -54,7 +54,7 @@ public class TestFragment extends Fragment {
         // Load questions for this test
         questions = repository.getDatabase().questionDao().getQuestionsByTestId(testId);
         if (questions.isEmpty()) {
-            Toast.makeText(requireContext(), "No questions found for this test", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Не было найдено вопросов", Toast.LENGTH_SHORT).show();
             Navigation.findNavController(view).navigateUp();
             return;
         }
@@ -70,7 +70,7 @@ public class TestFragment extends Fragment {
         }
 
         QuestionEntity currentQuestion = questions.get(currentQuestionIndex);
-        binding.questionNumberText.setText(String.format("Question %d of %d", 
+        binding.questionNumberText.setText(String.format("Впорос номер %d из %d",
             currentQuestionIndex + 1, questions.size()));
         binding.questionText.setText(currentQuestion.questionText);
 
@@ -83,7 +83,7 @@ public class TestFragment extends Fragment {
         binding.feedbackText.setVisibility(View.GONE);
         binding.nextButton.setVisibility(View.GONE);
         binding.answerButton.setVisibility(View.VISIBLE);
-        binding.answerButton.setText(currentQuestionIndex == questions.size() - 1 ? "Finish" : "Answer");
+        binding.answerButton.setText(currentQuestionIndex == questions.size() - 1 ? "Закончить" : "Ответить");
 
         // Set up radio buttons
         List<RadioButton> radioButtons = new ArrayList<>();
@@ -109,7 +109,7 @@ public class TestFragment extends Fragment {
         binding.answerButton.setOnClickListener(v -> {
             int selectedId = binding.optionsRadioGroup.getCheckedRadioButtonId();
             if (selectedId == -1) {
-                Toast.makeText(requireContext(), "Please select an answer", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Пожалуйста, выберите ответ", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -130,10 +130,10 @@ public class TestFragment extends Fragment {
             binding.feedbackText.setVisibility(View.VISIBLE);
             if (selectedOption != null && selectedOption.isCorrect) {
                 correctAnswers++;
-                binding.feedbackText.setText("Correct!");
+                binding.feedbackText.setText("Верно!");
                 binding.feedbackText.setTextColor(getResources().getColor(android.R.color.holo_green_dark, null));
             } else {
-                binding.feedbackText.setText("Incorrect!");
+                binding.feedbackText.setText("Неверно!");
                 binding.feedbackText.setTextColor(getResources().getColor(android.R.color.holo_red_dark, null));
             }
 

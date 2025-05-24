@@ -55,9 +55,9 @@ public class TestResultsDialog extends DialogFragment {
             
             // Update UI
             scoreText.setText(String.format(Locale.getDefault(), 
-                "You got %d out of %d questions correct", correctAnswers, totalQuestions));
+                "Вы ответили на %d из %d вопросов верно", correctAnswers, totalQuestions));
             percentageText.setText(String.format(Locale.getDefault(), 
-                "Score: %.1f%%", percentage));
+                "Итого: %.1f%%", percentage));
 
             // Save test result
             saveTestResult(testId, correctAnswers, totalQuestions);

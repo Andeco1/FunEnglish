@@ -7,15 +7,15 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "question_option")
 public class QuestionOptionEntity {
     @PrimaryKey
-    @ColumnInfo(name = "option_id")
+    @ColumnInfo(name = "optionId")
     public int optionId;
     
-    @ColumnInfo(name = "question_id")
+    @ColumnInfo(name = "questionId")
     public int questionId;
     
-    @ColumnInfo(name = "option_text")
+    @ColumnInfo(name = "optionText")
     public String optionText;
     
-    @ColumnInfo(name = "is_correct")
+    @ColumnInfo(name = "isCorrect")
     public boolean isCorrect;
 } 

@@ -16,4 +16,8 @@ public class UserInfo {
     public Long getUserId() {
         return userId;
     }
+
+    public static void clearInstance() {
+        instance = null;
+    }
 }

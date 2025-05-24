@@ -14,7 +14,7 @@ public interface QuestionOptionDao {
     @Query("SELECT * FROM question_option")
     List<QuestionOptionEntity> getAll();
 
-    @Query("SELECT * FROM question_option WHERE question_id = :questionId")
+    @Query("SELECT * FROM question_option WHERE questionId = :questionId")
     List<QuestionOptionEntity> getByQuestionId(int questionId);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

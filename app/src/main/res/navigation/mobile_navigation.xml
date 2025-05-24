@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/navigation_login"
         android:name="com.example.englishfun.ui.login.LoginFragment"
-        android:label="Login"
+        android:label="Авторизация"
         tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_navigation_login_to_navigation_home"
@@ -42,6 +42,12 @@
         android:name="com.example.englishfun.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications" />
+
+    <fragment
+        android:id="@+id/navigation_profile"
+        android:name="com.example.englishfun.ui.profile.ProfileFragment"
+        android:label="@string/title_profile"
+        tools:layout="@layout/fragment_profile" />
 
     <fragment
         android:id="@+id/lessonDetailFragment"

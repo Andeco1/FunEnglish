@@ -9,10 +9,8 @@ public class QuestionEntity {
     @PrimaryKey
     @ColumnInfo(name = "question_id")
     public int question_id;
-    
     @ColumnInfo(name = "test_id")
     public int test_id;
-    
     @ColumnInfo(name = "questionText")
     public String questionText;
 } 
