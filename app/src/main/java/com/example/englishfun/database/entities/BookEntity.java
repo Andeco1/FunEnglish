@@ -1,16 +1,16 @@
-package com.example.englishfun.data.entity;
+package com.example.englishfun.database.entities;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "books")
-public class Book {
+public class BookEntity {
     @PrimaryKey(autoGenerate = true)
     private int id;
     private String title;
     private String filePath;
 
-    public Book(String title, String filePath) {
+    public BookEntity(String title, String filePath) {
         this.title = title;
         this.filePath = filePath;
     }

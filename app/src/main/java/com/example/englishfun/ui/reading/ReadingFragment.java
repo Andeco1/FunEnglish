@@ -1,4 +1,4 @@
-package com.example.englishfun.ui.notifications;
+package com.example.englishfun.ui.reading;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -18,8 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.englishfun.R;
-import com.example.englishfun.data.AppDatabase;
-import com.example.englishfun.data.entity.Book;
+import com.example.englishfun.database.entities.BookEntity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
@@ -31,9 +30,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class NotificationsFragment extends Fragment {
+public class ReadingFragment extends Fragment {
     private static final int PICK_TXT_FILE = 1;
-    private List<Book> books = new ArrayList<>();
+    private List<BookEntity> bookEntities = new ArrayList<>();
     private BookAdapter adapter;
     private ActivityResultLauncher<Intent> filePickerLauncher;
     private AppDatabase database;
@@ -61,10 +60,10 @@ public class NotificationsFragment extends Fragment {
     }
 
     private void loadBooks() {
-        LiveData<List<Book>> booksLiveData = database.bookDao().getAllBooks();
+        LiveData<List<BookEntity>> booksLiveData = database.bookDao().getAllBooks();
         booksLiveData.observe(this, booksList -> {
-            books.clear();
-            books.addAll(booksList);
+            bookEntities.clear();
+            bookEntities.addAll(booksList);
             adapter.notifyDataSetChanged();
         });
     }
@@ -77,7 +76,7 @@ public class NotificationsFragment extends Fragment {
         RecyclerView recyclerView = root.findViewById(R.id.books_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         
-        adapter = new BookAdapter(books, this::openBook);
+        adapter = new BookAdapter(bookEntities, this::openBook);
         recyclerView.setAdapter(adapter);
         
         FloatingActionButton fab = root.findViewById(R.id.fab_add_book);
@@ -113,8 +112,8 @@ public class NotificationsFragment extends Fragment {
             }
 
             // Save to database
-            Book book = new Book(fileName, destFile.getAbsolutePath());
-            executorService.execute(() -> database.bookDao().insert(book));
+            BookEntity bookEntity = new BookEntity(fileName, destFile.getAbsolutePath());
+            executorService.execute(() -> database.bookDao().insert(bookEntity));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -141,8 +140,8 @@ public class NotificationsFragment extends Fragment {
         return result;
     }
 
-    private void openBook(Book book) {
-        ReadBookFragment fragment = ReadBookFragment.newInstance(book.getFilePath());
+    private void openBook(BookEntity bookEntity) {
+        ReadBookFragment fragment = ReadBookFragment.newInstance(bookEntity.getFilePath());
         requireActivity().getSupportFragmentManager()
             .beginTransaction()
             .replace(R.id.nav_host_fragment_activity_main, fragment)
@@ -157,15 +156,15 @@ public class NotificationsFragment extends Fragment {
     }
 
     private static class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
-        private List<Book> books;
+        private List<BookEntity> bookEntities;
         private OnBookClickListener listener;
 
         interface OnBookClickListener {
-            void onBookClick(Book book);
+            void onBookClick(BookEntity bookEntity);
         }
 
-        BookAdapter(List<Book> books, OnBookClickListener listener) {
-            this.books = books;
+        BookAdapter(List<BookEntity> bookEntities, OnBookClickListener listener) {
+            this.bookEntities = bookEntities;
             this.listener = listener;
         }
 
@@ -179,14 +178,14 @@ public class NotificationsFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            Book book = books.get(position);
-            holder.titleView.setText(book.getTitle());
-            holder.itemView.setOnClickListener(v -> listener.onBookClick(book));
+            BookEntity bookEntity = bookEntities.get(position);
+            holder.titleView.setText(bookEntity.getTitle());
+            holder.itemView.setOnClickListener(v -> listener.onBookClick(bookEntity));
         }
 
         @Override
         public int getItemCount() {
-            return books.size();
+            return bookEntities.size();
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {

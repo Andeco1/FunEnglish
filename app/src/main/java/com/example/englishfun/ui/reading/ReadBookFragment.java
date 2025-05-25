@@ -1,4 +1,4 @@
-package com.example.englishfun.ui.notifications;
+package com.example.englishfun.ui.reading;
 
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -120,8 +120,7 @@ public class ReadBookFragment extends Fragment {
                         JSONObject wordData = response.getJSONObject(0);
                         String phonetic = wordData.optString("phonetic", "");
                         String audioUrl = null;
-                        
-                        // Get audio URL from phonetics array
+
                         JSONArray phonetics = wordData.getJSONArray("phonetics");
                         for (int i = 0; i < phonetics.length(); i++) {
                             JSONObject phoneticObj = phonetics.getJSONObject(i);

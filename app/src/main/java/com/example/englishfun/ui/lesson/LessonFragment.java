@@ -1,4 +1,4 @@
-package com.example.englishfun.ui.home;
+package com.example.englishfun.ui.lesson;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -18,7 +18,7 @@ import com.example.englishfun.ui.adapters.LessonAdapter;
 
 import java.util.List;
 
-public class HomeFragment extends Fragment implements LessonAdapter.OnLessonClickListener {
+public class LessonFragment extends Fragment implements LessonAdapter.OnLessonClickListener {
 
     private FragmentHomeBinding binding;
     private LessonAdapter adapter;
